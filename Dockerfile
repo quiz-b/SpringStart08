@@ -1,7 +1,12 @@
-FROM maven:3-eclipse-temurin-17 AS build//buildステージを開始、Eclipse Temurin 17 JDKを適応したMavenということを設定
-COPY . .//ファイルをコピー
-RUN mvn clean package -Dmaven.test.skip=true//アプリケーションの実行と、テストのスキップ。
-FROM eclipse-temurin:17-alpine//新しいビルドステージの開始
-COPY --from=build /target/demo-0.0.1-SNAPSHOT.jar demo.jar//前のビルドステージからビルドされたjarファイル(demo.jar)を新しいビルドステージにコピー
-EXPOSE 8080//ポート8080を宣言
-ENTRYPOINT ["java", "-jar", "SpringStart08.jar"]//実行するファイル(demo.jar)を指定
+# ビルドステージ
+FROM maven:3-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY . .
+RUN mvn clean package -Dmaven.test.skip=true
+
+# 実行ステージ
+FROM eclipse-temurin:17-alpine
+WORKDIR /app
+COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
